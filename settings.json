@@ -1,0 +1,34 @@
+{
+    "dresses-jumpsuits":{
+        "url":"https://www.uniqlo.com/eu/en/women/tops/dresses-jumpsuits",
+        "type_pars":"clothes",
+        "folder_path":"/home/jacute/PycharmProjects/uniqlo_parser/profiles/dresses-jumpsuits",
+        "ЦЕНА_ДОСТАВКИ_В_КАТЕГОРИИ":"2",
+        "ПРОЦЕНТЫ_ОЗОН":"0.18"
+    },
+    
+    "tshirts":{
+        "url":"https://www.uniqlo.com/eu/en/women/tops/t-shirts-polo-shirts",
+        "type_pars":"clothes",
+        "folder_path":"/home/jacute/PycharmProjects/uniqlo_parser/profiles/tshirts",
+        "ЦЕНА_ДОСТАВКИ_В_КАТЕГОРИИ":"2",
+        "ПРОЦЕНТЫ_ОЗОН":"0.18"
+    },
+
+    "men_jeans": {
+        "url": "https://www.uniqlo.com/eu/en/men/bottoms/jeans",
+        "type_pars": "clothes",
+        "folder_path": "/home/jacute/PycharmProjects/uniqlo_parser/profiles/men_jeans",
+        "ЦЕНА_ДОСТАВКИ_В_КАТЕГОРИИ":"2",
+        "ПРОЦЕНТЫ_ОЗОН":"0.18"
+    },
+
+    "bags": {
+        "url":"https://www.uniqlo.com/eu/en/women/accessories/accessories-shoes",
+        "type_pars":"bags",
+        "folder_path":"/home/jacute/PycharmProjects/uniqlo_parser/profiles/bags",
+        "ЦЕНА_ДОСТАВКИ_В_КАТЕГОРИИ":"2",
+        "ПРОЦЕНТЫ_ОЗОН":"0.18"
+    }
+
+}
