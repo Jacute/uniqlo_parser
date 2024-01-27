@@ -1,9 +1,9 @@
-CATEGORIE = 'bags'
+CATEGORIE = 'men_jeans'
 TIMEOUT = 0.75
 SAVE_PHOTO_PATH = 'photo/'
 HOST = '85.193.92.123'
 SAVE_XLSX_PATH = 'xlsx/'
-PARSE_LIMIT = 1
+PARSE_LIMIT = 3
 PRICE_TABLE = {
     
     "КУРС_EUR_RUB":"103.6",

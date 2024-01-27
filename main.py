@@ -10,7 +10,6 @@ from selenium.common.exceptions import NoSuchElementException
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support.ui import WebDriverWait
 from googletrans import Translator
-from re import search
 from datetime import datetime
 
 import importlib.util
@@ -19,11 +18,9 @@ from config.colors import *
 from config.config import *
 from config.materials import *
 
-from random import random
 import shutil
 import requests
 import os
-import logging
 import time
 import sys
 import traceback
@@ -64,7 +61,7 @@ class Parser:
                 options=options
             )
             driver.set_window_size(1920, 1080)
-            driver.implicitly_wait(30)
+            driver.implicitly_wait(3)
 
             self.wait = WebDriverWait(driver, 30)
 
@@ -104,18 +101,18 @@ class Parser:
 
             self.driver.execute_script("window.scrollTo(0, 150)")
 
-            deliverySectionItems = self.driver.find_elements(By.CSS_SELECTOR, '.textToggle__text.js-toggleText')
+            deliverySectionItems = self.driver.find_elements(By.CSS_SELECTOR, '.deliverySection__title')
 
             if len(deliverySectionItems) > 3:
-                size_info = self.translate(deliverySectionItems[2].text)
+                size_info = self.translate(self.driver.find_element(By.XPATH, '//h3[contains(., "Size")]/following-sibling::div').text)
             else:
                 size_info = ''
 
-            material = deliverySectionItems[0].text
+            material = self.driver.find_element(By.XPATH, '//h3[contains(., "Material")]/following-sibling::div').text
 
-            care_instructions = self.translate(deliverySectionItems[1].text)
+            care_instructions = self.translate(self.driver.find_element(By.XPATH, '//h3[contains(., "Care")]/following-sibling::div').text)
 
-            description = self.translate(deliverySectionItems[-1].text).replace('\n', '').strip()
+            description = self.translate(self.driver.find_element(By.XPATH, '//h3[contains(., "Description")]/following-sibling::div').text).replace('\n', '').strip()
 
             name = self.translate(self.driver.find_element(By.XPATH, '//h1').text).strip()
 
@@ -123,7 +120,7 @@ class Parser:
             price = max(prices)
             price = self.get_cos_price(price)
 
-            colors = [j.get_attribute('data-replaceurl') for j in self.driver.find_elements(By.XPATH, '//div[@class="swatchBox swatchBox--color "]/button')]
+            colors = [j.get_attribute('data-replaceurl') for j in self.driver.find_elements(By.CSS_SELECTOR, '.swatch--color')]
             article_num = self.driver.find_element(By.XPATH, '//span[@itemprop="productID"]').text
             try:
                 regexp = re.compile(r'\d{1,3}% ([A-Za-z]+)')
@@ -142,7 +139,7 @@ class Parser:
                     time.sleep(TIMEOUT)
 
                     photos = [i.get_attribute('data-splide-lazy') for i in
-                              self.driver.find_elements(By.XPATH, '//img[@class="js_sliderThumbImg pdp__splideImg"]')]
+                              self.driver.find_elements(By.CSS_SELECTOR, '.js_sliderThumbImg')]
                     main_photo = photos[0].replace('?width=60', '')
                     other_photo = []
                     for i in photos[1:]:
@@ -184,7 +181,7 @@ class Parser:
                         continue
                     time.sleep(TIMEOUT)
 
-                    photos = [i.get_attribute('data-splide-lazy') for i in self.driver.find_elements(By.XPATH, '//img[@class="js_sliderThumbImg pdp__splideImg"]')]
+                    photos = [i.get_attribute('data-splide-lazy') for i in self.driver.find_elements(By.CSS_SELECTOR, '.js_sliderThumbImg')]
                     main_photo = photos[0].replace('?width=60', '')
                     other_photo = []
                     for i in photos[1:]:
@@ -223,23 +220,33 @@ class Parser:
                                     self.COLUMNS['Российский размер*'] = 'Bad size'  # Если размера нету в таблице размеров
                             self.COLUMNS['Размер производителя'] = size
                             self.COLUMNS['Название цвета'] = self.translate(color)
-                            self.COLUMNS['Страна-изготовитель'] = 'Турция'
+                            self.COLUMNS['Страна-и`зготовитель'] = 'Турция'
                             self.COLUMNS['Состав материала'] = material
                             self.COLUMNS['Материал'] = main_material
                             self.COLUMNS['Таблица размеров JSON'] = self.TABLE_OF_SIZES
                             self.COLUMNS['Rich-контент JSON'] = rich
+
+                            self.result.append(self.COLUMNS.copy())
                         else:
-                            lengths = self.driver.find_elements(By.CSS_SELECTOR, '.swatch.swatch--length')
+                            if self.check_exists_by_xpath('//button[contains(@class, "swatch--length")]'):
+                                lengths = self.driver.find_elements(By.XPATH, '//button[contains(@class, "swatch--length")]')
+                            else:
+                                lengths = [None]
+
                             for k in lengths:
-                                length = k.text
-                                article = 'UNIQLO_' + article_num + '_' + color + '_' + size + '_' + length
-                                length = round(float(re.search('\d+', length)[0]) * 2.54)
+                                if k:
+                                    length = k.text
+                                    article = 'UNIQLO_' + article_num + '_' + color + '_' + size + '_' + length
+                                    length = re.search('\d+', length)[0]
+                                    length = round(float(length) * 2.54)
+                                    self.COLUMNS['Длина изделия, см'] = length
+                                else:
+                                    article = 'UNIQLO_' + article_num + '_' + color + '_' + size
 
                                 self.COLUMNS['№'] = c
                                 self.COLUMNS['Артикул*'] = article
                                 self.COLUMNS['Название товара'] = name
                                 self.COLUMNS["Инструкция по уходу"] = care_instructions
-                                self.COLUMNS['Длина изделия, см'] = length
                                 try:
                                     self.COLUMNS['Цена, руб.*'] = price
                                 except:
@@ -259,12 +266,12 @@ class Parser:
                                 self.COLUMNS['Размер производителя'] = size
                                 self.COLUMNS['Название цвета'] = self.translate(color)
                                 self.COLUMNS['Страна-изготовитель'] = 'Турция'
-                                self.COLUMNS['Состав материала'] = self.translate(material)
-                                self.COLUMNS['Материал'] = self.translate(main_material)
+                                self.COLUMNS['Состав материала'] = material
+                                self.COLUMNS['Материал'] = main_material
                                 self.COLUMNS['Таблица размеров JSON'] = self.TABLE_OF_SIZES
                                 self.COLUMNS['Rich-контент JSON'] = rich
 
-                        self.result.append(self.COLUMNS.copy())
+                                self.result.append(self.COLUMNS.copy())
 
     def gPriceDict(self, key):
         return float(PRICE_TABLE[key])
